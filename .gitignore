@@ -1,0 +1,23 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Export and build artifacts
+/export/
+*.apk
+*.aab
+*.ipa
+*.exe
+*.x86_64
+*.app
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Editor temp files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
