@@ -132,26 +132,26 @@ func _create_obstacles() -> void:
 		var pos: Vector2 = ROCK_POSITIONS[i]
 		var rock_body: StaticBody2D = StaticBody2D.new()
 		rock_body.name = "Rock_%d" % i
-		# Sort origin is set at the ground contact line of the rock: pos + Vector2(0, -3)
-		rock_body.position = pos + Vector2(0.0, -3.0)
+		# Sort origin is aligned with rock center footprint: pos + Vector2(0, 4)
+		rock_body.position = pos + Vector2(0.0, 4.0)
 		rock_body.collision_layer = 1
 		rock_body.collision_mask = 0
 
 		# Rock visual drawing callback on the rock body itself
 		rock_body.draw.connect(func():
 			# Dark shadow: matches original pos + (2, 3) radius 15 in world space
-			rock_body.draw_circle(Vector2(2.0, 6.0), 15.0, COLOR_ROCK_DARK)
+			rock_body.draw_circle(Vector2(2.0, -1.0), 15.0, COLOR_ROCK_DARK)
 			# Main rock body: matches original pos + (0, 0) radius 13 in world space
-			rock_body.draw_circle(Vector2(0.0, 3.0), 13.0, COLOR_ROCK)
+			rock_body.draw_circle(Vector2(0.0, -4.0), 13.0, COLOR_ROCK)
 		)
 
-		# Rock collision shape: matches the visible rock body circle (radius 13)
+		# Rock collision shape: circular footprint matching visible rock & shadow base
 		var col: CollisionShape2D = CollisionShape2D.new()
 		col.name = "CollisionShape2D"
 		var shape: CircleShape2D = CircleShape2D.new()
-		shape.radius = 13.0
+		shape.radius = 16.0
 		col.shape = shape
-		col.position = Vector2(0.0, 3.0)  # In world space: (pos.x, pos.y)
+		col.position = Vector2(0.0, 0.0)
 
 		rock_body.add_child(col)
 		container.add_child(rock_body)
