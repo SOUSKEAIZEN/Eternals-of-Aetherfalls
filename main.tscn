@@ -1,7 +1,18 @@
 [gd_scene format=3 uid="uid://ie187e7k3cj4"]
 
 [ext_resource type="PackedScene" uid="uid://b5jgtvm6qbban" path="res://scenes/player/player.tscn" id="1_player_scene"]
+[ext_resource type="Script" path="res://scripts/systems/test_environment.gd" id="2_test_environment"]
 
 [node name="Main" type="Node2D" unique_id=434423615]
+
+[node name="TestEnvironment" type="Node2D" parent="."]
+z_index = -1
+script = ExtResource("2_test_environment")
+
+[node name="Ground" type="Node2D" parent="TestEnvironment"]
+
+[node name="Grid" type="Node2D" parent="TestEnvironment"]
+
+[node name="Landmarks" type="Node2D" parent="TestEnvironment"]
 
 [node name="Player" parent="." instance=ExtResource("1_player_scene")]
