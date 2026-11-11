@@ -1,10 +1,7 @@
 ## Temporary test environment for player movement verification.
-## Draws a large grass field, a pixel grid, trees and rocks using _draw().
+## Draws a large grass field, a pixel grid, trees and rocks with Y-sorting.
 ## This scene is for prototype testing only and will be replaced by the
 ## permanent world in a later task.
-##
-## Nothing here moves or runs any per-frame logic — _draw() is called once
-## on startup and never again, keeping runtime cost at zero.
 extends Node2D
 
 
@@ -63,113 +60,98 @@ const ROCK_POSITIONS: Array = [
 # ---------------------------------------------------------------------------
 # Setup & Lifecycle
 # ---------------------------------------------------------------------------
+@onready var ground_node: Node2D = $Ground
 @onready var landmarks_container: Node2D = $Landmarks
 
 
 func _ready() -> void:
+	if ground_node:
+		ground_node.draw.connect(_draw_ground_layer)
+		ground_node.queue_redraw()
 	_create_obstacles()
+
+
+func _draw_ground_layer() -> void:
+	if not ground_node:
+		return
+	var size: float = GROUND_HALF * 2.0
+	# Grass ground
+	ground_node.draw_rect(
+		Rect2(Vector2(-GROUND_HALF, -GROUND_HALF), Vector2(size, size)),
+		COLOR_GROUND
+	)
+	# Grid
+	var half: int = GROUND_HALF
+	var x: int = -half
+	while x <= half:
+		ground_node.draw_line(Vector2(x, -half), Vector2(x, half), COLOR_GRID, GRID_WIDTH)
+		x += GRID_STEP
+	var y: int = -half
+	while y <= half:
+		ground_node.draw_line(Vector2(-half, y), Vector2(half, y), COLOR_GRID, GRID_WIDTH)
+		y += GRID_STEP
+	# Origin marker
+	ground_node.draw_line(Vector2(-12.0, 0.0), Vector2(12.0, 0.0), COLOR_ORIGIN, 2.0)
+	ground_node.draw_line(Vector2(0.0, -12.0), Vector2(0.0, 12.0), COLOR_ORIGIN, 2.0)
 
 
 func _create_obstacles() -> void:
 	var container: Node2D = landmarks_container if landmarks_container != null else self
 
-	# Create tree trunk collision bodies
+	# Create individual tree obstacle bodies with self-contained rendering and accurate collision
 	for i in range(TREE_POSITIONS.size()):
 		var pos: Vector2 = TREE_POSITIONS[i]
 		var tree_body: StaticBody2D = StaticBody2D.new()
 		tree_body.name = "Tree_%d" % i
-		tree_body.position = pos
+		# Sort origin is set at the ground contact line of the trunk base: pos + Vector2(0, 2)
+		tree_body.position = pos + Vector2(0.0, 2.0)
 		tree_body.collision_layer = 1
 		tree_body.collision_mask = 0
 
+		# Tree visual drawing callback on the tree body itself
+		tree_body.draw.connect(func():
+			# Brown trunk rectangle: matches original pos + [-5, -6, 10, 24] in world space
+			tree_body.draw_rect(Rect2(-5.0, -8.0, 10.0, 24.0), COLOR_TRUNK)
+			# Green foliage circle: matches original pos + (0, -20) radius 22 in world space
+			tree_body.draw_circle(Vector2(0.0, -22.0), 22.0, COLOR_FOLIAGE)
+		)
+
+		# Tree collision shape: accurately covers the visible trunk base (width 10, height 24)
 		var col: CollisionShape2D = CollisionShape2D.new()
 		col.name = "CollisionShape2D"
-		var shape: CapsuleShape2D = CapsuleShape2D.new()
-		shape.radius = 5.0
-		shape.height = 24.0
+		var shape: RectangleShape2D = RectangleShape2D.new()
+		shape.size = Vector2(10.0, 24.0)
 		col.shape = shape
-		col.position = Vector2(0.0, 6.0)  # Matches trunk rect center
+		col.position = Vector2(0.0, 4.0)  # In world space: (pos.x, pos.y + 6.0)
 
 		tree_body.add_child(col)
 		container.add_child(tree_body)
 
-	# Create rock collision bodies
+	# Create individual rock obstacle bodies with self-contained rendering and accurate collision
 	for i in range(ROCK_POSITIONS.size()):
 		var pos: Vector2 = ROCK_POSITIONS[i]
 		var rock_body: StaticBody2D = StaticBody2D.new()
 		rock_body.name = "Rock_%d" % i
-		rock_body.position = pos
+		# Sort origin is set at the ground contact line of the rock: pos + Vector2(0, -3)
+		rock_body.position = pos + Vector2(0.0, -3.0)
 		rock_body.collision_layer = 1
 		rock_body.collision_mask = 0
 
+		# Rock visual drawing callback on the rock body itself
+		rock_body.draw.connect(func():
+			# Dark shadow: matches original pos + (2, 3) radius 15 in world space
+			rock_body.draw_circle(Vector2(2.0, 6.0), 15.0, COLOR_ROCK_DARK)
+			# Main rock body: matches original pos + (0, 0) radius 13 in world space
+			rock_body.draw_circle(Vector2(0.0, 3.0), 13.0, COLOR_ROCK)
+		)
+
+		# Rock collision shape: matches the visible rock body circle (radius 13)
 		var col: CollisionShape2D = CollisionShape2D.new()
 		col.name = "CollisionShape2D"
 		var shape: CircleShape2D = CircleShape2D.new()
-		shape.radius = 13.0  # Matches rock body circle radius
+		shape.radius = 13.0
 		col.shape = shape
+		col.position = Vector2(0.0, 3.0)  # In world space: (pos.x, pos.y)
 
 		rock_body.add_child(col)
 		container.add_child(rock_body)
-
-
-# ---------------------------------------------------------------------------
-# Drawing
-# ---------------------------------------------------------------------------
-func _draw() -> void:
-	_draw_ground()
-	_draw_grid()
-	_draw_rocks()     # Rocks behind trees
-	_draw_trees()
-	_draw_origin_marker()
-
-
-func _draw_ground() -> void:
-	var size: float = GROUND_HALF * 2.0
-	draw_rect(
-		Rect2(Vector2(-GROUND_HALF, -GROUND_HALF), Vector2(size, size)),
-		COLOR_GROUND
-	)
-
-
-func _draw_grid() -> void:
-	var half: int = GROUND_HALF
-	# Vertical lines
-	var x: int = -half
-	while x <= half:
-		draw_line(Vector2(x, -half), Vector2(x, half), COLOR_GRID, GRID_WIDTH)
-		x += GRID_STEP
-	# Horizontal lines
-	var y: int = -half
-	while y <= half:
-		draw_line(Vector2(-half, y), Vector2(half, y), COLOR_GRID, GRID_WIDTH)
-		y += GRID_STEP
-
-
-func _draw_trees() -> void:
-	for pos in TREE_POSITIONS:
-		_draw_tree(pos)
-
-
-func _draw_tree(pos: Vector2) -> void:
-	# Brown trunk rectangle
-	draw_rect(Rect2(pos + Vector2(-5.0, -6.0), Vector2(10.0, 24.0)), COLOR_TRUNK)
-	# Green foliage circle, centred above the trunk
-	draw_circle(pos + Vector2(0.0, -20.0), 22.0, COLOR_FOLIAGE)
-
-
-func _draw_rocks() -> void:
-	for pos in ROCK_POSITIONS:
-		_draw_rock(pos)
-
-
-func _draw_rock(pos: Vector2) -> void:
-	# Dark shadow slightly offset for depth
-	draw_circle(pos + Vector2(2.0, 3.0), 15.0, COLOR_ROCK_DARK)
-	# Main rock body
-	draw_circle(pos, 13.0, COLOR_ROCK)
-
-
-func _draw_origin_marker() -> void:
-	# White cross marks world (0, 0) — the player's start position
-	draw_line(Vector2(-12.0, 0.0), Vector2(12.0, 0.0), COLOR_ORIGIN, 2.0)
-	draw_line(Vector2(0.0, -12.0), Vector2(0.0, 12.0), COLOR_ORIGIN, 2.0)
