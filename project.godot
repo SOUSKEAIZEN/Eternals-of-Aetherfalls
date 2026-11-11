@@ -13,6 +13,7 @@ config_version=5
 config/name="Eternals of Aetherfalls"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene="res://main.tscn"
 
 [display]
 
