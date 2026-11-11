@@ -61,6 +61,58 @@ const ROCK_POSITIONS: Array = [
 
 
 # ---------------------------------------------------------------------------
+# Setup & Lifecycle
+# ---------------------------------------------------------------------------
+@onready var landmarks_container: Node2D = $Landmarks
+
+
+func _ready() -> void:
+	_create_obstacles()
+
+
+func _create_obstacles() -> void:
+	var container: Node2D = landmarks_container if landmarks_container != null else self
+
+	# Create tree trunk collision bodies
+	for i in range(TREE_POSITIONS.size()):
+		var pos: Vector2 = TREE_POSITIONS[i]
+		var tree_body: StaticBody2D = StaticBody2D.new()
+		tree_body.name = "Tree_%d" % i
+		tree_body.position = pos
+		tree_body.collision_layer = 1
+		tree_body.collision_mask = 0
+
+		var col: CollisionShape2D = CollisionShape2D.new()
+		col.name = "CollisionShape2D"
+		var shape: CapsuleShape2D = CapsuleShape2D.new()
+		shape.radius = 5.0
+		shape.height = 24.0
+		col.shape = shape
+		col.position = Vector2(0.0, 6.0)  # Matches trunk rect center
+
+		tree_body.add_child(col)
+		container.add_child(tree_body)
+
+	# Create rock collision bodies
+	for i in range(ROCK_POSITIONS.size()):
+		var pos: Vector2 = ROCK_POSITIONS[i]
+		var rock_body: StaticBody2D = StaticBody2D.new()
+		rock_body.name = "Rock_%d" % i
+		rock_body.position = pos
+		rock_body.collision_layer = 1
+		rock_body.collision_mask = 0
+
+		var col: CollisionShape2D = CollisionShape2D.new()
+		col.name = "CollisionShape2D"
+		var shape: CircleShape2D = CircleShape2D.new()
+		shape.radius = 13.0  # Matches rock body circle radius
+		col.shape = shape
+
+		rock_body.add_child(col)
+		container.add_child(rock_body)
+
+
+# ---------------------------------------------------------------------------
 # Drawing
 # ---------------------------------------------------------------------------
 func _draw() -> void:
