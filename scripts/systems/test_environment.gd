@@ -65,9 +65,7 @@ const ROCK_POSITIONS: Array = [
 
 
 func _ready() -> void:
-	if ground_node:
-		ground_node.draw.connect(_draw_ground_layer)
-		ground_node.queue_redraw()
+	# Note: Procedural ground drawing replaced by TileMapLayer terrain (Task 4B)
 	_create_obstacles()
 
 

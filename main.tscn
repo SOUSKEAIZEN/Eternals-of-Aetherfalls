@@ -2,9 +2,12 @@
 
 [ext_resource type="PackedScene" uid="uid://b5jgtvm6qbban" path="res://scenes/player/player.tscn" id="1_player_scene"]
 [ext_resource type="Script" uid="uid://cy773hok7cnwm" path="res://scripts/systems/test_environment.gd" id="2_test_environment"]
+[ext_resource type="PackedScene" path="res://scenes/world/terrain.tscn" id="3_terrain"]
 
 [node name="Main" type="Node2D" unique_id=434423615]
 y_sort_enabled = true
+
+[node name="Terrain" parent="." instance=ExtResource("3_terrain")]
 
 [node name="TestEnvironment" type="Node2D" parent="." unique_id=447182767]
 y_sort_enabled = true
