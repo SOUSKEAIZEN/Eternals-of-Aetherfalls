@@ -7,17 +7,11 @@
 [node name="Main" type="Node2D" unique_id=434423615]
 y_sort_enabled = true
 
-[node name="Terrain" parent="." instance=ExtResource("3_terrain")]
+[node name="Terrain" parent="." unique_id=1679727226 instance=ExtResource("3_terrain")]
 
 [node name="TestEnvironment" type="Node2D" parent="." unique_id=447182767]
 y_sort_enabled = true
 script = ExtResource("2_test_environment")
-
-[node name="Ground" type="Node2D" parent="TestEnvironment" unique_id=1574958473]
-z_index = -1
-
-[node name="Grid" type="Node2D" parent="TestEnvironment" unique_id=724977502]
-z_index = -1
 
 [node name="Landmarks" type="Node2D" parent="TestEnvironment" unique_id=1631712177]
 y_sort_enabled = true
